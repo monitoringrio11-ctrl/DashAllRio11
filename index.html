@@ -272,15 +272,55 @@
 </div>
 
 <script>
-// สีประจำประเภทงบประมาณ
-const BUDGET_COLORS = {
-  'งบ พ.ร.บ.69': '#1565C0',
-  'งบกลาง กัน 68': '#1B5E20',
-  'งบ พ.ร.บ. กัน 68': '#E65100',
-  'งบ พ.ร.บ.69 (เพิ่มเติม)': '#42A5F5',
-  'เงินทุนหมุนเวียน': '#6A1B9A',
-  'อื่นๆ': '#757575'
-};
+// 🌟 DYNAMIC: สีและลำดับประจำประเภทงบประมาณ (รองรับทุกปีงบประมาณอัตโนมัติ)
+let sdColorMap = {};
+let sdOrderList = [];
+
+function getBudgetColor(label, apiColor) {
+  if (apiColor) return apiColor;
+  if (sdColorMap[label]) return sdColorMap[label];
+  label = String(label || '');
+  if (label.indexOf('พ.ร.บ.') >= 0 && label.indexOf('กัน') < 0 && label.indexOf('เพิ่มเติม') < 0) return '#1565C0';
+  if (label.indexOf('กลาง') >= 0 && label.indexOf('กัน') < 0) return '#0D47A1';
+  if (label.indexOf('กลาง') >= 0 && label.indexOf('กัน') >= 0) return '#1B5E20';
+  if (label.indexOf('พ.ร.บ.') >= 0 && label.indexOf('กัน') >= 0) return '#E65100';
+  if (label.indexOf('เพิ่มเติม') >= 0) return '#42A5F5';
+  if (label.indexOf('หมุนเวียน') >= 0) return '#6A1B9A';
+  return '#757575';
+}
+
+function getSrcSortOrder(label) {
+  const idx = sdOrderList.indexOf(label);
+  if (idx >= 0) return idx;
+  label = String(label || '');
+  if (label.indexOf('พ.ร.บ.') >= 0 && label.indexOf('กัน') < 0 && label.indexOf('เพิ่มเติม') < 0) return 101;
+  if (label.indexOf('กลาง') >= 0 && label.indexOf('กัน') < 0) return 102;
+  if (label.indexOf('กลาง') >= 0 && label.indexOf('กัน') >= 0) return 103;
+  if (label.indexOf('พ.ร.บ.') >= 0 && label.indexOf('กัน') >= 0) return 104;
+  if (label.indexOf('เพิ่มเติม') >= 0) return 105;
+  if (label.indexOf('หมุนเวียน') >= 0) return 106;
+  return 199;
+}
+
+function detectFiscalYear(data) {
+  if (data && data.fiscalYear) return String(data.fiscalYear);
+  const SD = (data && data.SD) || [];
+  for (let i = 0; i < SD.length; i++) {
+    const lbl = SD[i].label || '';
+    if (lbl.indexOf('กัน') < 0 && lbl.indexOf('เหลื่อม') < 0) {
+      const m = lbl.match(/(\d{2})/);
+      if (m) return String(2500 + parseInt(m[1], 10));
+    }
+  }
+  for (let i = 0; i < SD.length; i++) {
+    const lbl = SD[i].label || '';
+    if (lbl.indexOf('กัน') >= 0 || lbl.indexOf('เหลื่อม') >= 0) {
+      const m = lbl.match(/(\d{2})/);
+      if (m) return String(2500 + parseInt(m[1], 10) + 1);
+    }
+  }
+  return '';
+}
 
 // สีประจำขั้นตอนการดำเนินงาน
 const STATUS_COLORS = {
@@ -358,9 +398,10 @@ function renderGroupedDisbursement(projects) {
     sourceGroup[src][agency].paid += paid;
   });
 
-  Object.keys(sourceGroup).forEach(srcName => {
+  const sortedSources = Object.keys(sourceGroup).sort((a, b) => getSrcSortOrder(a) - getSrcSortOrder(b));
+  sortedSources.forEach(srcName => {
     const agenciesObj = sourceGroup[srcName];
-    const themeColor = BUDGET_COLORS[srcName] || '#0d47a1';
+    const themeColor = getBudgetColor(srcName);
 
     let totalSrcAlloc = 0;
     let totalSrcPaid = 0;
@@ -456,7 +497,7 @@ function renderDisbursementCharts(sdData) {
       labels: sdData.map(i => i.label),
       datasets: [{
         data: sdData.map(i => i.alloc),
-        backgroundColor: sdData.map(i => i.color || BUDGET_COLORS[i.label] || '#999')
+        backgroundColor: sdData.map(i => getBudgetColor(i.label, i.color))
       }]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
@@ -471,7 +512,7 @@ function renderDisbursementCharts(sdData) {
       datasets: [{
         label: '% เบิกจ่าย',
         data: sdData.map(i => i.pct),
-        backgroundColor: sdData.map(i => i.color || BUDGET_COLORS[i.label] || '#999'),
+        backgroundColor: sdData.map(i => getBudgetColor(i.label, i.color)),
         borderRadius: 6
       }]
     },
@@ -490,7 +531,7 @@ function renderDisbursementCharts(sdData) {
 function renderStatusSection(statusSummary) {
   if (!statusSummary) return;
 
-  const sources = Object.keys(statusSummary);
+  const sources = Object.keys(statusSummary).sort((a, b) => getSrcSortOrder(a) - getSrcSortOrder(b));
   let totalFinished = 0, totalInConstruction = 0, totalInProcurement = 0, totalCancelled = 0;
 
   sources.forEach(src => {
@@ -588,7 +629,7 @@ async function fetchWithRetry(url, retries = 3, delay = 1500) {
   
 // ดึงข้อมูลจาก API
 async function loadData() {
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwNA-k_rn8RYahrFTmgkmh4_OfFYqBX3OBXClFu5OFxLESvRu39ZYc876UBeUPW5l9B/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMaCtK01tGDYP-jrq9cgUU8x071ye09-NN2YqwmQrAKIl2H_5JaoOZ1zI3s-yuo6vK/exec';
   const loadingOverlay = document.getElementById('loadingOverlay');
 
   try {
@@ -596,7 +637,13 @@ async function loadData() {
     const data = await fetchWithRetry(WEB_APP_URL);
 
     if (data) {
-      if (data.updated) document.getElementById('updateText').innerText = 'ข้อมูล ณ วันที่: ' + data.updated;
+      if (data.SD && Array.isArray(data.SD)) {
+        sdOrderList = data.SD.map(s => s.label);
+        data.SD.forEach(s => { if (s.label && s.color) sdColorMap[s.label] = s.color; });
+      }
+      const fy = detectFiscalYear(data);
+      const fyText = fy ? `ปีงบประมาณ พ.ศ. ${fy} | ` : '';
+      if (data.updated) document.getElementById('updateText').innerText = fyText + 'ข้อมูล ณ วันที่: ' + data.updated;
       if (data.total !== undefined) document.getElementById('totalCount').innerText = data.total.toLocaleString();
 
       if (data.SD) renderDisbursementCharts(data.SD);
