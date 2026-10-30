@@ -120,7 +120,7 @@
         <h1>📋 สรุปขั้นตอนการจัดซื้อจัดจ้าง สชป.11 แยกตามแหล่งงบประมาณ</h1>
         <p class="subtitle">จำแนกความก้าวหน้าตามขั้นตอนการดำเนินงาน และวงเงินงบประมาณปีปัจจุบัน (หน่วย: จำนวนโครงการ / ล้านบาท)</p>
         <div class="note-box">
-          💡 <strong>ข้อมูลจาก:</strong> ระบบติดตาม Cen-ProjectII<br>
+          💡 <strong>ข้อมูลจาก:</strong> ระบบติดตาม Cen-ProjectII <span id="stepUpdateInfo"></span><br>
         </div>
       </div>
       
@@ -136,7 +136,7 @@
   </div>
 
   <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwNA-k_rn8RYahrFTmgkmh4_OfFYqBX3OBXClFu5OFxLESvRu39ZYc876UBeUPW5l9B/exec';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMaCtK01tGDYP-jrq9cgUU8x071ye09-NN2YqwmQrAKIl2H_5JaoOZ1zI3s-yuo6vK/exec';
 
     let SRC_ORDER = []; // จะถูก populate จาก SD อัตโนมัติ
     const STEP_NAMES = [
@@ -171,9 +171,20 @@
           return;
         }
 
-        // populate SRC_ORDER จาก SD อัตโนมัติ
+        // populate SRC_ORDER จาก SD อัตโนมัติ (พร้อม fallback กรณีไม่มี SD)
         if (data.SD && data.SD.length > 0) {
           SRC_ORDER = data.SD.map(s => s.label);
+        } else if (data.STEP_SUMMARY) {
+          const allSrcSet = new Set();
+          Object.values(data.STEP_SUMMARY).forEach(agObj => {
+            Object.keys(agObj || {}).forEach(s => allSrcSet.add(s));
+          });
+          SRC_ORDER = Array.from(allSrcSet);
+        }
+        const infoEl = document.getElementById('stepUpdateInfo');
+        if (infoEl && data.updated) {
+          const fy = data.fiscalYear ? ` | ปีงบประมาณ พ.ศ. ${data.fiscalYear}` : '';
+          infoEl.textContent = `${fy} (ข้อมูล ณ วันที่ ${data.updated})`;
         }
         renderTables(data.STEP_SUMMARY || {});
       } catch (err) {
