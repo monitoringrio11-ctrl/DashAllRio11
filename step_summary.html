@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สรุปขั้นตอนการจัดซื้อจัดจ้าง สชป.11</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- ไลบรารีแปลง HTML เป็นรูปภาพ (ใช้สำหรับปุ่มดาวน์โหลด JPEG) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+    body { background-color: #f8fafc; margin: 0; padding: 16px; color: #1e293b; padding-bottom: 60px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    /* 📋 การ์ดหัวเรื่อง + ปุ่มกด */
+    .header-card { 
+      background: #ffffff; 
+      padding: 20px; 
+      border-radius: 12px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+      margin-bottom: 20px; 
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .header-title-group { flex: 1; min-width: 280px; }
+    h1 { margin: 0 0 8px 0; font-size: 20px; color: #0f172a; font-weight: 700; }
+    .subtitle { color: #64748b; font-size: 14px; margin: 0; }
+    .note-box { background: #eff6ff; border-left: 4px solid #2563eb; padding: 10px 14px; margin-top: 12px; border-radius: 0 6px 6px 0; font-size: 13px; color: #1e40af; line-height: 1.6; }
+    
+    /* 🔘 ปุ่ม Action Buttons (รีเฟรช / พิมพ์) */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn:hover { background-color: #f1f5f9; border-color: #94a3b8; }
+    .btn-refresh { color: #0284c7; border-color: #bae6fd; background-color: #f0f9ff; }
+    .btn-refresh:hover { background-color: #e0f2fe; }
+    .btn-print { color: #15803d; border-color: #bbf7d0; background-color: #f0fdf4; }
+    .btn-print:hover { background-color: #dcfce7; }
+
+    /* 🖼️ ปุ่มดาวน์โหลด JPEG ของแต่ละตาราง */
+    .btn-jpeg { color: #b45309; border-color: #fde68a; background-color: #fffbeb; padding: 6px 12px; }
+    .btn-jpeg:hover { background-color: #fef3c7; }
+    .btn-jpeg:disabled { opacity: 0.6; cursor: wait; }
+
+    /* 🏷️ กล่องแต่ละแหล่งงบประมาณ */
+    .budget-section { background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .budget-title { font-size: 16px; font-weight: 700; color: #1e3a8a; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    
+    /* 💬 ข้อความสรุปใต้ชื่อแหล่งงบ */
+    .budget-summary-text {
+      background-color: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #334155;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .budget-summary-text strong { color: #0f172a; }
+    .step-badge-text { display: inline-block; margin-right: 6px; }
+
+    /* 📋 ตารางข้อมูล */
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 6px; white-space: nowrap; }
+    th { background-color: #f1f5f9; color: #334155; font-weight: 600; }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    tr:hover { background-color: #f1f5f9; }
+    
+    .text-left { text-align: left; font-weight: 600; padding-left: 10px; }
+    .step-header { font-size: 12px; }
+    .step-done { background-color: #f0fdf4; color: #166534; }
+    
+    /* 🔴 เน้นสีโทนแดงสำหรับขั้นตอน 1-6 ที่มีข้อมูลค้างอยู่ */
+    .pending-highlight {
+      background-color: #ffebee !important;
+      color: #c62828 !important;
+      font-weight: 700;
+      border: 1px solid #ffcdd2 !important;
+    }
+
+    .total-row { background-color: #e2e8f0 !important; font-weight: 700; color: #0f172a; }
+    .loading-box { text-align: center; padding: 40px; font-size: 16px; color: #64748b; }
+
+    /* 🖨️ สไตล์สำหรับการพิมพ์ (Print Style) */
+    @media print {
+      body { background-color: #ffffff; padding: 0; }
+      .action-buttons, .note-box, .no-capture { display: none !important; }
+      .header-card { box-shadow: none; border: 1px solid #e2e8f0; padding: 12px; }
+      .budget-section { box-shadow: none; border: 1px solid #cbd5e1; page-break-inside: avoid; }
+      .container { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-card">
+      <div class="header-title-group">
+        <h1>📋 สรุปขั้นตอนการจัดซื้อจัดจ้าง สชป.11 แยกตามแหล่งงบประมาณ</h1>
+        <p class="subtitle">จำแนกความก้าวหน้าตามขั้นตอนการดำเนินงาน และวงเงินงบประมาณปีปัจจุบัน (หน่วย: จำนวนโครงการ / ล้านบาท)</p>
+        <div class="note-box">
+          💡 <strong>ข้อมูลจาก:</strong> ระบบติดตาม Cen-ProjectII<br>
+        </div>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="btn btn-refresh" onclick="refreshData()">🔄 รีเฟรชข้อมูล</button>
+        <button class="btn btn-print" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
+      </div>
+    </div>
+
+    <div id="contentArea">
+      <div class="loading-box">🔄 กำลังดึงข้อมูลจากระบบ...</div>
+    </div>
+  </div>
+
+  <script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwNA-k_rn8RYahrFTmgkmh4_OfFYqBX3OBXClFu5OFxLESvRu39ZYc876UBeUPW5l9B/exec';
+
+    let SRC_ORDER = []; // จะถูก populate จาก SD อัตโนมัติ
+    const STEP_NAMES = [
+      '1. ยังไม่ดำเนินการ',
+      '2. อนุมัติแผน',
+      '3. ประกาศ TOR',
+      '4. ประกวดราคา',
+      '5. เปิดซอง',
+      '6. อนุมัติรับราคา',
+      '7. ทำสัญญา (ผูกพัน)'
+    ];
+
+    // ฟังก์ชัน Auto-Retry 3 รอบ
+    async function fetchWithRetry(url, retries = 3, delay = 1500) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) return await response.json();
+        } catch (err) {
+          if (i === retries - 1) throw err;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    async function loadData() {
+      try {
+        const data = await fetchWithRetry(WEB_APP_URL);
+        
+        if (data.error) {
+          document.getElementById('contentArea').innerHTML = `<div class="loading-box" style="color: red;">❌ เกิดข้อผิดพลาด: ${data.error}</div>`;
+          return;
+        }
+
+        // populate SRC_ORDER จาก SD อัตโนมัติ
+        if (data.SD && data.SD.length > 0) {
+          SRC_ORDER = data.SD.map(s => s.label);
+        }
+        renderTables(data.STEP_SUMMARY || {});
+      } catch (err) {
+        document.getElementById('contentArea').innerHTML = `<div class="loading-box" style="color: red;">❌ ไม่สามารถเชื่อมต่อระบบได้ ชั่วคราว กรุณาลองใหม่อีกครั้ง</div>`;
+      }
+    }
+
+    // ฟังก์ชันสำหรับกดปุ่มรีเฟรชข้อมูล
+    async function refreshData() {
+      const container = document.getElementById('contentArea');
+      container.innerHTML = '<div class="loading-box">🔄 กำลังอัปเดตข้อมูลล่าสุด...</div>';
+      await loadData();
+    }
+
+    // 🖼️ ดาวน์โหลดตารางของแต่ละแหล่งงบประมาณเป็นไฟล์ JPEG
+    async function downloadTableJpeg(btn) {
+      const section = btn.closest('.budget-section');
+      const table = section.querySelector('table');
+      const srcName = (section.querySelector('.src-name')?.textContent || 'table').trim();
+      const oldLabel = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = '⏳ กำลังสร้างรูป...';
+      section.setAttribute('data-capture', '1');
+
+      try {
+        if (typeof html2canvas === 'undefined') throw new Error('โหลดไลบรารี html2canvas ไม่สำเร็จ');
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+        // ความกว้างเต็มของตาราง (รวมส่วนที่เลื่อนซ้าย-ขวา)
+        const w = Math.ceil(Math.max(section.offsetWidth, table.scrollWidth + 32));
+
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          width: w,
+          windowWidth: w + 64,
+          ignoreElements: el => el.classList && el.classList.contains('no-capture'),
+          onclone: (doc) => {
+            const s = doc.querySelector('[data-capture="1"]');
+            s.style.width = w + 'px';
+            s.style.boxShadow = 'none';
+            s.querySelector('.table-container').style.overflow = 'visible';
+            // แก้ปัญหา html2canvas: พื้นหลังของแถวที่ 2 ในหัวตารางไปทับข้อความของเซลล์ที่ rowspan (เช่น "หน่วยงาน")
+            s.querySelectorAll('thead tr').forEach(tr => { tr.style.background = 'transparent'; });
+          }
+        });
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+        if (!blob) throw new Error('สร้างไฟล์รูปภาพไม่สำเร็จ');
+
+        const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+        const safeName = srcName.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '_');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `สชป11_${safeName}_${today}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      } catch (err) {
+        console.error(err);
+        alert('❌ ไม่สามารถสร้างรูปภาพได้: ' + (err.message || err));
+      } finally {
+        section.removeAttribute('data-capture');
+        btn.disabled = false;
+        btn.innerHTML = oldLabel;
+      }
+    }
+
+    function renderTables(stepSummary) {
+      const container = document.getElementById('contentArea');
+      container.innerHTML = '';
+
+      let hasData = false;
+
+      SRC_ORDER.forEach(src => {
+        const agencies = Object.keys(stepSummary).filter(ag => stepSummary[ag][src] && stepSummary[ag][src].total.cnt > 0);
+
+        if (agencies.length === 0) return;
+        hasData = true;
+
+        let sumTotal = { cnt: 0, amt: 0 };
+        let sumSteps = Array(7).fill(null).map(() => ({ cnt: 0, amt: 0 }));
+
+        let rowsHtml = '';
+        agencies.forEach(ag => {
+          const item = stepSummary[ag][src];
+          sumTotal.cnt += item.total.cnt;
+          sumTotal.amt += item.total.amt;
+
+          let stepsTd = '';
+          for (let i = 1; i <= 7; i++) {
+            const st = item[`step${i}`];
+            sumSteps[i-1].cnt += st.cnt;
+            sumSteps[i-1].amt += st.amt;
+
+            const isPendingAndHasData = (i <= 6 && st.cnt > 0);
+            const cellClass = isPendingAndHasData ? 'pending-highlight' : (i === 7 ? 'step-done' : '');
+
+            stepsTd += `<td class="${cellClass}">
+              ${st.cnt > 0 ? `<strong>${st.cnt}</strong><br><small>(${st.amt.toFixed(2)})</small>` : '-'}
+            </td>`;
+          }
+
+          rowsHtml += `<tr>
+            <td class="text-left">${ag}</td>
+            <td><strong>${item.total.cnt}</strong><br><small>(${item.total.amt.toFixed(2)})</small></td>
+            ${stepsTd}
+          </tr>`;
+        });
+
+        // คำนวณสรุปข้อความประจำแหล่งงบประมาณ
+        let summaryTextParts = [];
+        STEP_NAMES.forEach((name, idx) => {
+          const count = sumSteps[idx].cnt;
+          if (count > 0) {
+            // ใส่สีเน้นเฉพาะขั้นตอนที่ค้างอยู่ (1-6) และขั้นตอนทำสัญญา (7)
+            const style = (idx < 6) ? 'color: #c62828; font-weight: bold;' : 'color: #15803d; font-weight: bold;';
+            summaryTextParts.push(`<span class="step-badge-text"><b>${name}:</b> <span style="${style}">${count}</span> รายการ</span>`);
+          }
+        });
+
+        const summaryTextHtml = `
+          <div class="budget-summary-text">
+            📌 <strong>สรุปจำนวนโครงการ:</strong> รวม <strong>${sumTotal.cnt}</strong> รายการ (${sumTotal.amt.toFixed(2)} ล้านบาท) 
+            ${summaryTextParts.length > 0 ? ' ➔ ' + summaryTextParts.join(' | ') : ''}
+          </div>
+        `;
+
+        // แถวสรุปรวมท้ายตาราง
+        let totalStepsTd = '';
+        for (let i = 0; i < 7; i++) {
+          const st = sumSteps[i];
+          const isPendingAndHasData = (i < 6 && st.cnt > 0);
+          const cellClass = isPendingAndHasData ? 'pending-highlight' : '';
+
+          totalStepsTd += `<td class="${cellClass}">
+            <strong>${st.cnt}</strong><br><small>(${st.amt.toFixed(2)})</small>
+          </td>`;
+        }
+
+        const tableHtml = `
+          <div class="budget-section">
+            <div class="budget-title">
+              <span>🏷️ แหล่งงบประมาณ: <span class="src-name">${src}</span></span>
+              <button class="btn btn-jpeg no-capture" onclick="downloadTableJpeg(this)">🖼️ ดาวน์โหลด JPEG</button>
+            </div>
+            ${summaryTextHtml}
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th rowspan="2" style="width: 18%;">หน่วยงาน</th>
+                    <th rowspan="2" style="width: 10%;">รวมทั้งหมด<br><small>(โครงการ / ล้านบาท)</small></th>
+                    <th colspan="7">ขั้นตอนการดำเนินงาน (โครงการ / วงเงิน)</th>
+                  </tr>
+                  <tr>
+                    <th class="step-header">${STEP_NAMES[0]}</th>
+                    <th class="step-header">${STEP_NAMES[1]}</th>
+                    <th class="step-header">${STEP_NAMES[2]}</th>
+                    <th class="step-header">${STEP_NAMES[3]}</th>
+                    <th class="step-header">${STEP_NAMES[4]}</th>
+                    <th class="step-header">${STEP_NAMES[5]}</th>
+                    <th class="step-header" style="background-color: #dcfce7; color: #15803d;">${STEP_NAMES[6]}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                  <tr class="total-row">
+                    <td class="text-left">รวมทั้งสิ้น</td>
+                    <td><strong>${sumTotal.cnt}</strong><br><small>(${sumTotal.amt.toFixed(2)})</small></td>
+                    ${totalStepsTd}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+
+        container.innerHTML += tableHtml;
+      });
+
+      if (!hasData) {
+        container.innerHTML = '<div class="loading-box">⚠️ ไม่พบข้อมูลสำหรับสร้างตารางสรุปขั้นตอน</div>';
+      }
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
